@@ -3,11 +3,24 @@
 #include <unordered_map> 
 #include <string>
 #include <queue>
+class Point
+{
+public:
+    double x, y;
+
+    Point() 
+    {
+        x = 0;
+        y = 0;
+    }
+};
+
 class Vertex
 {
     std::vector<Vertex> neighbours;
     int index, cityIndex;
     double shortestDistance;
+    int pathViaIndex;
     bool visited;
     double x, y;
 public:
@@ -16,12 +29,28 @@ public:
         static int vertexAmount;
         visited = false;
         shortestDistance = INFINITY;
+        pathViaIndex = -1;
         index = vertexAmount++;
+    }
+
+    void Visit()
+    {
+        visited = true;
+    }
+
+    bool IsVisited()
+    {
+        return visited;
     }
 
     void AddNeighbour(Vertex neighbour)
     {
         neighbours.push_back(neighbour);
+    }
+
+    std::vector<Vertex> GetNeighbours()
+    {
+        return neighbours;
     }
 
     int GetIndex()
@@ -44,14 +73,29 @@ public:
         return y;
     }
 
+    void SetPathViaIndex(int index)
+    {
+        pathViaIndex = index;
+    }
+
+    int GetPathViaIndex()
+    {
+        return pathViaIndex;
+    }
+
+    void SetShortestDistance(double distance)
+    {
+        shortestDistance = distance;
+    }
+
     double GetShortestDistance()
     {
         return shortestDistance;
     }
 
-    bool operator<(const Vertex& other)
+    friend bool operator<(const Vertex& l, const Vertex& r)
     {
-        return this->shortestDistance < other.shortestDistance;
+        return l.shortestDistance > r.shortestDistance;
     }
 };
 
@@ -150,23 +194,82 @@ void CreateEdges(std::vector<std::string>& cityNames, std::vector<std::vector<Ve
             }
         }
     }
-    std::cout << "teste";
 }
 
-void Djikstras(std::vector<std::string>& cityNames, std::vector<std::vector<Vertex>>& vertexVectors, std::unordered_map<std::string, double>& edgeMap, std::vector<double>& shortestPaths)
+//void Djikstras(std::vector<std::string>& cityNames, std::vector<std::vector<Vertex>>& vertexVectors, std::unordered_map<std::string, double>& edgeMap, std::vector<double>& shortestCityPaths)
+//{
+//    std::priority_queue<Vertex&> priorityQueue;
+//    for (int i = 0; i < cityNames.size(); i++)
+//    {
+//        shortestCityPaths.push_back(INFINITY);
+//    }
+//
+//    //Create starting vertex
+//    Vertex start(0, 0, 0);
+//    for (int i = 0; i < vertexVectors.at(0).size(); i++)
+//    {
+//        edgeMap[GetKey(start.GetIndex(), vertexVectors.at(0).at(i).GetIndex())] = 0;
+//        edgeMap[GetKey(vertexVectors.at(0).at(i).GetIndex(), start.GetIndex())] = 0;
+//    }
+//    start.SetShortestDistance(0);
+//    priorityQueue.push(start);
+//
+//    while (!priorityQueue.empty())
+//    {
+//        Vertex& current = priorityQueue.top();
+//        priorityQueue.pop();
+//        current.Visit();
+//        for (Vertex v : current.GetNeighbours()) 
+//        {
+//            if (v.GetShortestDistance() > current.GetShortestDistance() + edgeMap[GetKey(current.GetIndex(), v.GetIndex())])
+//            {
+//                v.SetShortestDistance(current.GetShortestDistance() + edgeMap[GetKey(current.GetIndex(), v.GetIndex())]);
+//                v.SetPathViaIndex(current.GetIndex());
+//                if (v.GetShortestDistance() < shortestCityPaths.at(v.GetCityIndex())) shortestCityPaths.at(v.GetCityIndex()) = v.GetShortestDistance();
+//            }
+//        }
+//    }
+//
+//
+//    //add neihgbors to priorityqueue
+//    //visit next in queue
+//    //update distance to vertieses and cities
+//    //add city-distances together
+//    //return
+//}
+
+Point GetCityAverage(std::vector<std::string>& cityNames, std::vector<std::vector<Vertex>>& vertexVectors)
 {
-    std::priority_queue<Vertex> priorityQueue;
+    Point cityAverage;
+    std::vector<Point> averageList;
     for (int i = 0; i < cityNames.size(); i++)
     {
-        shortestPaths.push_back(INFINITY);
+        Point average;
+        for (int j = 0; j < vertexVectors.at(i).size(); j++)
+        {
+            average.x += vertexVectors.at(i).at(j).GetX();
+            average.y += vertexVectors.at(i).at(j).GetY();
+        }
+        average.x = average.x / vertexVectors.at(i).size();
+        average.y = average.y / vertexVectors.at(i).size();
+        averageList.push_back(average);
     }
-    //priorityQueue.push()
-    //test priorityqueue and overloaded operator
-    //add neihgbors to priorityqueue
-    //visit next in queue
-    //update distance to vertieses and cities
-    //add city-distances together
-    //return
+    for (int i = 0; i < averageList.size(); i++)
+    {
+        cityAverage.x += averageList.at(i).x;
+        cityAverage.y += averageList.at(i).y;
+    }
+    cityAverage.x = cityAverage.x / averageList.size();
+    cityAverage.y = cityAverage.y / averageList.size();
+
+    return cityAverage;
+}
+
+double ShortestPath(std::vector<std::string>& cityNames, std::vector<std::vector<Vertex>>& vertexVectors, std::unordered_map<std::string, double>& edgeMap)
+{
+    double shortestPath = INFINITY;
+    Point average = GetCityAverage(cityNames, vertexVectors);
+    return shortestPath;
 }
 
 
@@ -175,8 +278,8 @@ int main()
     std::vector<std::string> cityNames;
     std::vector<std::vector<Vertex>> vertexVectors;
     std::unordered_map<std::string, double> edgeMap;
-    std::vector<double> shortestPaths;
+    std::vector<double> shortestCityPaths;
     CreateVerticies(cityNames, vertexVectors);
     CreateEdges(cityNames, vertexVectors, edgeMap);
-    std::cout << "teste";
+    ShortestPath(cityNames, vertexVectors, edgeMap);
 }
